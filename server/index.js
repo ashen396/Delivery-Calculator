@@ -1,6 +1,8 @@
 const express = require("express")
 const { MongoClient } = require("mongodb")
 const app = express()
+const cors = require("cors")()
+app.use(cors)
 const mongoConnectionURL = "mongodb://127.0.0.1:27017"
 
 async function GetData(props) {
@@ -23,6 +25,23 @@ async function GetData(props) {
   }
 }
 
+async function SaveData(body, props) {
+  try {
+    const client = new MongoClient(mongoConnectionURL)
+    const db = client.db("CodeFusion")
+    const collection = db.collection(props)
+
+    client.connect()
+    collection.insertOne(body).then((value) => {
+      client.close()
+      console.log(value)
+    })
+  }
+  catch (ex) {
+    console.log(ex)
+  }
+}
+
 app.get("/states", (req, res) => {
   if (req.method === "GET") {
     GetData("States").then((data) => {
@@ -36,6 +55,20 @@ app.get("/cities", (req, res) => {
     GetData("Cities").then((data) => {
       res.write(data)
     }).finally(() => res.end())
+  }
+})
+
+app.post('/save', (req, res) => {
+  if (req.method === "POST") {
+    req.on('data', (data) => {
+      // console.log(JSON.parse(data))
+      // res.sendStatus(res.statusCode)
+      // res.end()
+
+      SaveData(JSON.parse(data), "Data")
+      res.sendStatus(res.statusCode)
+      res.end()
+    })
   }
 })
 

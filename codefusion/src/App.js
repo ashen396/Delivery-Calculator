@@ -43,22 +43,52 @@ function AddCity() {
 }
 
 function SaveData() {
-  let postalCodeType = document.getElementById("postalCodeType").selectedIndex
-  let postalCode = document.getElementById("postalCode").value
+  // let postalCodeType = document.getElementById("postalCodeType").selectedIndex
+  // let postalCode = document.getElementById("postalCode").value
 
-  if (postalCode !== null) {
-    var postalCodeString = null
-    if ((postalCodeString = String(postalCode)).length !== 0) {
-      if (postalCodeType === 1) {
-        let codes = postalCodeString.split('-')
-        console.log(codes)
+  // if (postalCode !== null) {
+  //   var postalCodeString = null
+  //   if ((postalCodeString = String(postalCode)).length !== 0) {
+  //     if (postalCodeType === 1) {
+  //       let codes = postalCodeString.split('-')
+  //       console.log(codes)
+  //     }
+  //     if(postalCodeType === 2){
+  //       let codes = postalCodeString.split(',')
+  //       console.log(codes)
+  //     }
+  //   }
+  // }
+
+  let state_index = document.getElementById("states").selectedIndex
+  let selected_state = document.getElementById("states")[state_index]
+
+  let city_index = document.getElementById("cityName").selectedIndex
+  let selected_city = document.getElementById("cityName")[city_index]
+
+  var obj = {
+    stateId: selected_state.id,
+    name: selected_state.innerText,
+    cities: [
+      {
+        cityId: selected_city.id,
+        name: selected_city.innerText
       }
-      if(postalCodeType === 2){
-        let codes = postalCodeString.split(',')
-        console.log(codes)
-      }
-    }
+    ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   }
+
+  let url = "http://localhost:3004/save"
+  fetch(url, {
+    body: JSON.stringify(obj),
+    mode: 'cors',
+    method: 'POST'
+  }).then((data) => {
+    data.json().then((val) => {
+      console.log(val)
+    })
+  })
 }
 
 function App() {
@@ -71,12 +101,12 @@ function App() {
 
   return (
     <div className="bg-gray-100 p-10">
-      <form action="/submit-data" method="POST" className="bg-white p-6 rounded shadow-md">
+      <form onSubmit={() => SaveData()} className="bg-white p-6 rounded shadow-md">
         <h2 className='text-xl font-bold mb-4'>State Information</h2>
         <label htmlFor="stateName" className="block mb-2 font-semibold">State Name:</label>
         <select id="states" name="stateName" required className="border border-gray-300 p-2 w-full mb-4 rounded" onChange={(ev) => SetComboCities(ev.currentTarget.value, setCitites)}>
           {states.map((value, _index, _array) =>
-            <option key={value._id} value={value.Key}>{value.Name}</option>
+            <option id={value._id} key={value._id} value={value.Key}>{value.Name}</option>
           )}
         </select>
 
@@ -86,7 +116,7 @@ function App() {
             <label htmlFor="cityName" className="block mb-2 font-semibold">City Name:</label>
             <select id="cityName" name="cities[0][name]" required className="border border-gray-300 p-2 w-full mb-4 rounded">
               {cities.map((value, index, array) =>
-                (value.StateID === document.getElementById("states").value) ? <option key={value._id}>{value.Name}</option> : null
+                (value.StateID === document.getElementById("states").value) ? <option id={value._id} key={value._id}>{value.Name}</option> : null
               )}
             </select>
 
@@ -153,7 +183,7 @@ function App() {
         </div>
         <button type="button" onClick={() => AddCity()} className="text-blue-500">Add Another City State</button>
         <br></br>
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded mt-4" onClick={() => SaveData()}>Submit</button>
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded mt-4">Submit</button>
       </form>
     </div>
   );
